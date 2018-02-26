@@ -42,7 +42,7 @@ class SVM :
         G = 0.5*(K+K.T) + 10**(-10)*np.eye(n)
         a = Y
         C1 = np.diag(-Y)
-        C2 = np.diag(np.ones(n))
+        C2 = np.diag(Y)
         C = np.hstack([C1, C2])
         b1 = -np.ones(n)/(self.lamb*n)
         b2 = np.zeros(n)
