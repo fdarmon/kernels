@@ -9,8 +9,8 @@ import numpy as np
 
 def extractdata(filename):
     """
-        Extracts the  data given the path 
-    """ 
+        Extracts the  data given the path
+    """
     data  = pd.read_csv(filename,sep=',', header=None, engine='python').as_matrix()
     return data
 
@@ -24,3 +24,19 @@ def splitdata(X,Y):
     Xtrain, Y_train = X[train_idx,:], Y[train_idx]
     Xtest, Y_test = X[test_idx,:], Y[test_idx]
     return Xtrain, Y_train, Xtest, Y_test
+
+def preprocessing(Xfile,Yfile):
+    Xtmp = extractdata(Xfile)
+    Y = extractdata(Yfile)
+    Y =Y[1:,1]
+    Y = Y.astype(int)
+    Xtmp = np.array([list(Xtmp[k,0]) for k in range(np.shape(Xtmp)[0])])
+
+    d = {'A':np.array([1,0,0,0]), 'C': np.array([0,1,0,0]), 'T':np.array([0,0,1,0]), 'G':np.array([0,0,0,1])}
+    X = np.zeros((np.shape(Xtmp)[0], 4*np.shape(Xtmp)[1]))
+    for k in range(np.shape(Xtmp)[1]):
+
+        for r in range(np.shape(Xtmp)[0]):
+
+            X[r,k*4:(k+1)*4] = d[Xtmp[r,k]]
+    return X,Y
