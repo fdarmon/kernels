@@ -40,3 +40,15 @@ def preprocessing(Xfile,Yfile):
 
             X[r,k*4:(k+1)*4] = d[Xtmp[r,k]]
     return X,Y
+
+def classification_accuracy(y_pred, y_true):
+    return np.sum(y_pred == y_true)/y_pred.shape[0]
+
+def write_prediction_file(pred_file,preds):
+    assert len(preds) == 3
+
+    with open(pred_file,'w') as f:
+        f.write("Id,Bound\n")
+        for i,preds_i in enumerate(preds):
+            for idx,p in enumerate(preds_i):
+                f.write('{},{}\n'.format(idx+1000*i,int(p)))
