@@ -32,7 +32,7 @@ def preprocessing(Xfile,Yfile):
     Y = Y.astype(int)
     Xtmp = np.array([list(Xtmp[k,0]) for k in range(np.shape(Xtmp)[0])])
 
-    d = {'A':np.array([1,0,0,0]), 'C': np.array([0,1,0,0]), 'T':np.array([0,0,1,0]), 'G':np.array([0,0,0,1])}
+    d = {'A':np.array([1,0,0,0]), 'C': np.array([0,1,0,0]), 'G':np.array([0,0,1,0]), 'T':np.array([0,0,0,1])}
     X = np.zeros((np.shape(Xtmp)[0], 4*np.shape(Xtmp)[1]))
     for k in range(np.shape(Xtmp)[1]):
 
