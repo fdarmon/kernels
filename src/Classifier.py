@@ -13,15 +13,25 @@ class SVM :
         self.Xtrain = None
         self.predict_func= None
 
-    def setKernel(self, name, f= None ):
-        legal_values = ["linear", "manual"]
+    def setKernel(self, name, f= None, deg = None, sigma = None):
+        legal_values = ["linear", "manual", "polynomial","gaussian"]
         assert name in legal_values
         self.kernel_name = name
         if name == "linear":
             f = lambda x,y : np.dot(x,y)
             self.kernel = f
+        elif name == "polynomial":
+            if deg == None:
+                deg = 2
+            f = lambda x,y : (np.dot(x,y))**deg
+            self.kernel = f
+        elif name == "gaussian":
+            if sigma == None:
+                sigma = 1
+            f = lambda x,y : np.exp(-np.dot(x-y,x-y)/(sigma**2))
+            self.kernel = f
         else:
-            assert test != None
+            assert f != None
             self.kernel = f
 
     def train(self, X, Y):
@@ -39,7 +49,7 @@ class SVM :
                 K[i,j] = self.kernel(X[i],X[j])
 
         #define the QP
-        G = 0.5*(K+K.T) + 10**(-10)*np.eye(n)
+        G = 0.5*(K+K.T) + 10**(-8)*np.eye(n)
         a = Y
         C1 = np.diag(-Y)
         C2 = np.diag(Y)
