@@ -1,6 +1,8 @@
 import quadprog
 import numpy as np
 import kernels
+import cvxopt
+from cvxopt import matrix
 
 
 class Classifier :
@@ -12,6 +14,7 @@ class Classifier :
         self.kernel = self.setKernel(self.kernel_name)
         self.Xtrain = None
         self.predict_func= None
+        self.solver = "cvxopt"
 
     def setKernel(self, name, f= None, deg = None, sigma = None):
         legal_values = ["linear", "manual", "polynomial","gaussian"]
@@ -58,16 +61,36 @@ class SVM(Classifier):
                 K[i,j] = self.kernel(X[i],X[j])
 
         #define the QP
-        G = 0.5*(K+K.T) + 10**(-8)*np.eye(n)
-        a = Y
-        C1 = np.diag(-Y)
-        C2 = np.diag(Y)
-        C = np.hstack([C1, C2])
-        b1 = -np.ones(n)/(self.lamb*n)
-        b2 = np.zeros(n)
-        b = np.hstack([b1,b2])
+        if self.solver == "quadprog":
+
+            G = 0.5*(K+K.T) + 10**(-8)*np.eye(n)
+            a = Y
+            C1 = -np.diag(Y)
+            C2 = np.diag(Y)
+            C = np.vstack([C1, C2]).T
+            b1 = -np.ones(n)/(self.lamb*n*2)
+            b2 = np.zeros(n)
+            b = np.hstack([b1,b2])
+            self.coef = quadprog.solve_qp(G, a, C, b)[0]
+
+        else :
+
+            P = .5 * (K + K.T)  # make sure P is symmetric
+            args = [matrix(P), -matrix(Y)]
+            C1 = np.diag(Y)
+            C2 = -np.diag(Y)
+            G = np.vstack([C1, C2])
+            b1 = np.ones(n)/(self.lamb*n*2)
+            b2 = np.zeros(n)
+            h = np.hstack([b1,b2])
+            args.extend([matrix(G), matrix(h)])
+
+            sol = cvxopt.solvers.qp(*args)
+            if 'optimal' not in sol['status']:
+                print("no optimal solution")
+            self.coef =  np.array(sol['x']).reshape((K.shape[1],))
 
         #solve the QP
-        self.coef = quadprog.solve_qp(G, a, C, b)[0]
+
         self.Xtrain = X
         self.predict_func = lambda x : kernels.prediction_function(self.coef, self.Xtrain, self.kernel,x)

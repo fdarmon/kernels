@@ -25,7 +25,7 @@ X_tr = np.hstack([X_train,offset])
 offset = np.ones((X_test.shape[0],1))
 X_te = np.hstack([X_test,offset])
 svm = Classifier.SVM()
-svm.lamb = 0.1
+svm.lamb = 0.001
 svm.setKernel("gaussian")
 svm.train(X_tr,Y_tr)
 Y_p = svm.predict(X_te)

@@ -7,11 +7,11 @@ Created on Sun Feb 25 20:10:29 2018
 import pandas as pd
 import numpy as np
 
-def extractdata(filename):
+def extractdata(filename, sep = ','):
     """
         Extracts the  data given the path
     """
-    data  = pd.read_csv(filename,sep=',', header=None, engine='python').as_matrix()
+    data  = pd.read_csv(filename,sep= sep, header=None, engine='python').as_matrix()
     return data
 
 
