@@ -3,7 +3,7 @@ import numpy as np
 import kernels
 
 
-class SVM :
+class Classifier :
     def __init__(self):
         self.lamb = 1
         self.kernel_name = "linear"
@@ -34,6 +34,15 @@ class SVM :
             assert f != None
             self.kernel = f
 
+    def predict(self, X):
+        n,d = np.shape(X)
+        Y = np.array([self.predict_func(X[k]) for k in range(n)])
+        return Y
+
+class SVM(Classifier):
+    def __init__(self):
+        super().__init__()
+
     def train(self, X, Y):
         # tcheck if the dimention match
         shapex = np.shape(X)
@@ -62,9 +71,3 @@ class SVM :
         self.coef = quadprog.solve_qp(G, a, C, b)[0]
         self.Xtrain = X
         self.predict_func = lambda x : kernels.prediction_function(self.coef, self.Xtrain, self.kernel,x)
-
-
-    def predict(self, X):
-        n,d = np.shape(X)
-        Y = np.array([self.predict_func(X[k]) for k in range(n)])
-        return Y
