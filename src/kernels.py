@@ -21,7 +21,7 @@ def generate_uplets(alphabet,n,aux):
 
 def spectrum(sequence,k):
     """
-    Computes the spectrum kernel of the vector x
+    Computes the spectrum representation of the vector x
     Parameters
     ----------
     x : sequence

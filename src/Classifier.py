@@ -17,7 +17,7 @@ class Classifier :
         self.solver = "cvxopt"
         self.bias = None
 
-    def setKernel(self, name, f= None, deg = None, sigma = None):
+    def setKernel(self, name="manual", f= None, deg = None, sigma = None):
         legal_values = ["linear", "manual", "polynomial","gaussian"]
         assert name in legal_values
         self.kernel_name = name
