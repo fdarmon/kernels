@@ -20,20 +20,21 @@ X_train, Y_train, X_test, Y_test = cf.splitdata(X,Y)
 
 Y_tr = 2*(Y_train - 1/2)
 Y_te = 2*(Y_test - 1/2)
-offset = np.ones((X_train.shape[0],1))
-X_tr = np.hstack([X_train,offset])
-offset = np.ones((X_test.shape[0],1))
-X_te = np.hstack([X_test,offset])
 svm = Classifier.SVM()
-svm.lamb = 0.001
-svm.setKernel("gaussian")
-svm.train(X_tr,Y_tr)
-Y_p = svm.predict(X_te)
-Y_p = Y_p > 0
-Y_p = 2*Y_p - 1
-res = np.sum(Y_p == Y_te)/X_test.shape[0]
-
-print(res)
+svm.lamb = 0.1
+kernelName = ["gaussian"]#["gaussian", "linear", "polynomial"]
+for name in kernelName:
+    print(name,"\n")
+    svm.setKernel(name)
+    svm.train(X_train,Y_tr)
+    Y_p = svm.predict(X_train)
+    Y_p = 2*Y_p - 1
+    res = np.sum(Y_p == Y_tr)/X_train.shape[0]
+    print("training accuracy : ",res,"\n")
+    Y_p = svm.predict(X_test)
+    Y_p = 2*Y_p - 1
+    res = np.sum(Y_p == Y_te)/X_test.shape[0]
+    print("test accuracy : ",res,"\n")
 
 # print(X_train[0])
 # print(X[0])
