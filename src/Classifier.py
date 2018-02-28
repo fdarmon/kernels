@@ -105,12 +105,13 @@ class SVM(Classifier):
         self.predict_func = lambda x : kernels.prediction_function(self.coef, self.Xtrain, self.kernel,x)
         #compute the bias:
         tmp = Y*self.coef
-        mask1 = tmp > 5*10**(-16)
-        mask2 = tmp < (1/(self.lamb*n*2) - 5*10**(-16))
+        mask1 = tmp > 5*10**(-10)
+        mask2 = tmp < (1/(self.lamb*n*2) - 5*10**(-10)*1/(self.lamb*n*2))
         mask = mask1*mask2
         nonSaturatedCoef = self.coef[mask]
         nonSaturatedy = Y[mask]
         nonSaturatedX = X[mask]
+        print("Number of non saturated constraints : \n")
         print(nonSaturatedX.shape[0])
         tmp = np.array([1/nonSaturatedy[k] - self.predict_func(nonSaturatedX[k]) for k in range(nonSaturatedX.shape[0]) ])
         self.bias = np.mean(tmp)
