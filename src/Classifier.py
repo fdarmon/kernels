@@ -125,17 +125,18 @@ class LogisticRegression(Classifier):
         super().__init__()
 
     def logistic(self,x):
-        return(1/(1+np.exp(np.clip(-x,-20,20))))
+        return(1 / ( 1 + np.exp(np.clip( -x , -20 , 20) ) ) )
 
     def train(self,X,Y):
         tol = 1e-8
-        K = self.compute_K(X)
+        K = self.kernel.gram_matrix(X)
         n ,d = X.shape
         assert(len(Y)==n)
 
         self.coef = np.zeros((n,))
 
         tic = time.time()
+
         while(True):
 
             m = K @ self.coef
@@ -153,6 +154,7 @@ class LogisticRegression(Classifier):
                 break
             else:
                 self.coef = new_coef
+
 
         print("Training done in {}s".format(time.time()-tic))
         self.Xtrain = X
