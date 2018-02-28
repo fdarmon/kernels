@@ -15,6 +15,7 @@ class Classifier :
         self.Xtrain = None
         self.predict_func= None
         self.solver = "cvxopt"
+        self.bias = None
 
     def setKernel(self, name, f= None, deg = None, sigma = None):
         legal_values = ["linear", "manual", "polynomial","gaussian"]
@@ -39,7 +40,7 @@ class Classifier :
 
     def predict(self, X):
         n,d = np.shape(X)
-        Y = np.array([self.predict_func(X[k]) for k in range(n)])
+        Y = np.array([self.predict_func(X[k]) + self.bias for k in range(n)])
         return Y
 
 class SVM(Classifier):
@@ -71,6 +72,7 @@ class SVM(Classifier):
             b1 = -np.ones(n)/(self.lamb*n*2)
             b2 = np.zeros(n)
             b = np.hstack([b1,b2])
+            #solve the QP
             self.coef = quadprog.solve_qp(G, a, C, b)[0]
 
         else :
@@ -79,18 +81,36 @@ class SVM(Classifier):
             args = [matrix(P), -matrix(Y)]
             C1 = np.diag(Y)
             C2 = -np.diag(Y)
+
+            A = np.ones((1,Y.shape[0]))
+            b = np.array([ 0.0 ])
+
+
             G = np.vstack([C1, C2])
             b1 = np.ones(n)/(self.lamb*n*2)
             b2 = np.zeros(n)
             h = np.hstack([b1,b2])
             args.extend([matrix(G), matrix(h)])
+            args.extend([matrix(A), matrix(b)])
 
             sol = cvxopt.solvers.qp(*args)
             if 'optimal' not in sol['status']:
                 print("no optimal solution")
+            #solve the QP
             self.coef =  np.array(sol['x']).reshape((K.shape[1],))
 
-        #solve the QP
+
 
         self.Xtrain = X
         self.predict_func = lambda x : kernels.prediction_function(self.coef, self.Xtrain, self.kernel,x)
+        #compute the bias:
+        tmp = Y*self.coef
+        mask1 = tmp > 5*10**(-16)
+        mask2 = tmp < (1/(self.lamb*n*2) - 5*10**(-16))
+        mask = mask1*mask2
+        nonSaturatedCoef = self.coef[mask]
+        nonSaturatedy = Y[mask]
+        nonSaturatedX = X[mask]
+        print(nonSaturatedX.shape[0])
+        tmp = np.array([1/nonSaturatedy[k] - self.predict_func(nonSaturatedX[k]) for k in range(nonSaturatedX.shape[0]) ])
+        self.bias = np.mean(tmp)
