@@ -22,12 +22,12 @@ class Classifier :
         assert name in legal_values
         self.kernel_name = name
         if name == "linear":
-            f = lambda x,y : np.dot(x,y)
+            f = lambda x,y : np.dot(np.ravel(x),np.ravel(y))
             self.kernel = f
         elif name == "polynomial":
             if deg == None:
                 deg = 2
-            f = lambda x,y : (np.dot(x,y))**deg
+            f = lambda x,y : (np.dot(np.ravel(x),np.ravel(y)))**deg
             self.kernel = f
         elif name == "gaussian":
             if sigma == None:

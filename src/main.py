@@ -21,8 +21,8 @@ X_train, Y_train, X_test, Y_test = cf.splitdata(X,Y)
 Y_tr = 2*(Y_train - 1/2)
 Y_te = 2*(Y_test - 1/2)
 svm = Classifier.SVM()
-svm.lamb = 0.1
-kernelName = ["gaussian"]#["gaussian", "linear", "polynomial"]
+svm.lamb = 1
+kernelName = ["gaussian", "linear", "polynomial"]
 for name in kernelName:
     print(name,"\n")
     svm.setKernel(name)
