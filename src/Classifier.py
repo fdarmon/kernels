@@ -16,6 +16,8 @@ class Classifier :
         self.predict_func= None
         self.solver = "cvxopt"
         self.bias = None
+        self.gram = None # Gram matrix
+
 
     def setKernel(self, name="manual", f= None, deg = None, sigma = None):
         legal_values = ["linear", "manual", "polynomial","gaussian"]
@@ -44,15 +46,19 @@ class Classifier :
         return Y
 
     def compute_K(self,X):
+        if not (self.gram is None):
+            return self.gram
+        else:
+            n = X.shape[0]
+            K = np.zeros((n,n))
+            for i in range(n):
+                for j in range(n):
+                    K[i,j] = self.kernel(X[i],X[j])
+            self.gram=K
+            return K
 
-        n = X.shape[0]
-        K = np.zeros((n,n))
-        for i in range(n):
-            for j in range(n):
-                K[i,j] = self.kernel(X[i],X[j])
-
-        return K
-
+    def set_gram(self,K):
+        self.gram=K
 
 class SVM(Classifier):
     def __init__(self):
