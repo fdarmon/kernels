@@ -31,7 +31,7 @@ class Kernel:
             return (X @ X.T)**self.deg
         else:
             diff_matrix = X[None,:,:]-X[:,None,:] # shape n*n*d
-            return(np.exp(np.sum(diff_matrix**2,axis = 2)/(2*self.sigma**2)))
+            return(np.exp(-np.sum(diff_matrix**2,axis = 2)/(2*self.sigma**2)))
 
     def predict(self,X,Xtrain,alphas):
         """
@@ -45,8 +45,8 @@ class Kernel:
             return alphas.T @ (Xtrain @ X.T)**self.deg
 
         else:
-            diff_matrix = X_train[:,None,:]-X[None,:,:] # shape n_train*n_test*d
-            return(alphas.T*np.exp(np.sum(diff_matrix**2,axis = 2)/(2*self.sigma**2)))
+            diff_matrix = Xtrain[:,None,:]-X[None,:,:] # shape n_train*n_test*d
+            return(alphas.T @ np.exp(- np.sum(diff_matrix**2,axis = 2)/(2*self.sigma**2)))
 
 
 def prediction_function(coef, data, kernel,x):
