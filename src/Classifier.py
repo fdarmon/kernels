@@ -3,6 +3,7 @@ import numpy as np
 import kernels
 import cvxopt
 from cvxopt import matrix
+import time
 
 
 class Classifier :
@@ -56,11 +57,13 @@ class SVM(Classifier):
 
         n, d = shapex[0], shapex[1]
         #define the Kernel matrix
+        print('Computing Kernel Matrix...')
+        t0 = time.time()
         K = np.zeros((n,n))
         for i in range(n):
             for j in range(n):
                 K[i,j] = self.kernel(X[i],X[j])
-
+        print('Done')
         #define the QP
         if self.solver == "quadprog":
 
