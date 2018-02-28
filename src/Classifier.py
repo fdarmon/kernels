@@ -11,7 +11,6 @@ class Classifier :
         self.lamb = 1
         self.kernel_name = "linear"
         self.coef = 0
-        self.margin = 0
         self.kernel = self.setKernel(self.kernel_name)
         self.Xtrain = None
         self.predict_func= None
@@ -44,26 +43,29 @@ class Classifier :
         Y = np.array([self.predict_func(X[k]) + self.bias for k in range(n)])
         return Y
 
-class SVM(Classifier):
-    def __init__(self):
-        super().__init__()
+    def compute_K(self,X):
 
-    def train(self, X, Y):
-        # tcheck if the dimention match
-        shapex = np.shape(X)
-        shapy = np.shape(Y)
-
-        assert shapex[0] == shapy[0]
-
-        n, d = shapex[0], shapex[1]
-        #define the Kernel matrix
-        print('Computing Kernel Matrix...')
-        t0 = time.time()
+        n = X.shape[0]
         K = np.zeros((n,n))
         for i in range(n):
             for j in range(n):
                 K[i,j] = self.kernel(X[i],X[j])
-        print('Done')
+
+        return K
+
+
+class SVM(Classifier):
+    def __init__(self):
+        self.margin = 0
+        super().__init__()
+
+    def train(self, X, Y):
+        # tcheck if the dimention match
+
+        K = self.compute_K(X)
+
+        n, d = X.shape
+        assert(len(Y)==n)
         #define the QP
         if self.solver == "quadprog":
 
@@ -102,18 +104,56 @@ class SVM(Classifier):
             #solve the QP
             self.coef =  np.array(sol['x']).reshape((K.shape[1],))
 
-
-
         self.Xtrain = X
         self.predict_func = lambda x : kernels.prediction_function(self.coef, self.Xtrain, self.kernel,x)
         #compute the bias:
         tmp = Y*self.coef
-        mask1 = tmp > 5*10**(-16)
-        mask2 = tmp < (1/(self.lamb*n*2) - 5*10**(-16))
+        mask1 = tmp > 5*10**(-10)
+        mask2 = tmp < (1/(self.lamb*n*2) - 5*10**(-10)*1/(self.lamb*n*2))
         mask = mask1*mask2
         nonSaturatedCoef = self.coef[mask]
         nonSaturatedy = Y[mask]
         nonSaturatedX = X[mask]
+        print("Number of non saturated constraints : \n")
         print(nonSaturatedX.shape[0])
         tmp = np.array([1/nonSaturatedy[k] - self.predict_func(nonSaturatedX[k]) for k in range(nonSaturatedX.shape[0]) ])
         self.bias = np.mean(tmp)
+
+
+class LogisticRegression(Classifier):
+    def __init__(self):
+        super().__init__()
+
+    def logistic(self,x):
+        return(1/(1+np.exp(np.clip(-x,-20,20))))
+
+    def train(self,X,Y):
+        tol = 1e-8
+        K = self.compute_K(X)
+        n ,d = X.shape
+        assert(len(Y)==n)
+
+        self.coef = np.zeros((n,))
+
+        tic = time.time()
+        while(True):
+
+            m = K @ self.coef
+            sqrt_w = np.sqrt(self.logistic(m)*self.logistic(-m))
+            z = m + Y/self.logistic(-Y * m)
+
+            mat_sqrt_W = np.diag(sqrt_w)
+            mat_sqrt_iW = np.diag(1/sqrt_w)
+
+            A = (mat_sqrt_W @ K @ mat_sqrt_W + n * self.lamb * np.eye(n)) @ mat_sqrt_iW
+            b = mat_sqrt_W @ z
+            new_coef = np.linalg.solve(A,b)
+            print(self.logistic(m))
+            if np.all(np.abs(self.logistic(m)-self.logistic(K @ new_coef)) < tol):
+                break
+            else:
+                self.coef = new_coef
+
+        print("Training done in {}s".format(time.time()-tic))
+        self.Xtrain = X
+        self.predict_func = lambda x : kernels.prediction_function(self.coef, self.Xtrain, self.kernel,x)
