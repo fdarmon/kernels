@@ -12,7 +12,11 @@ class Kernel:
         Classical kernels
         kernel_type can be : ("linear" or "polynomial" or "gaussian")
         """
-        self.type = kernel_type
+        if kernel_type in ['linear', 'polynomial','gaussian']:
+            self.type = kernel_type
+        else:
+            print("Unknown kernel : {}".format(kernel_type))
+            return
         if deg is None:
             self.deg = 2
         else:
