@@ -60,32 +60,38 @@ def prediction_function(coef, data, kernel,x):
     return np.sum(tmp)
 
 
-# Spectrum Kernel
-def generate_uplets(alphabet,n,aux):
-    if n==0:
-        return aux
-    else:
-        tmp = []
-        for a in (aux):
-            for l in alphabet:
-                tmp.append(l+a)
 
-        return generate_uplets(alphabet,n-1,tmp)
 
-def spectrum(sequence,k):
+def spectrum(x,k=3):
     """
-    Computes the spectrum representation of the vector x
+    Computes the spectrum kernel of the vector x
     Parameters
     ----------
-    x : sequence
+    x : array containing the sequences in string format.
+        Second dimension must be 1
     k : length of substrings to consider
     Returns
     -------
     phix : spectrum representation of x. Array containing for each word
             of size k the number of occurences of the word in x
     """
+    n = np.shape(x)[0]
     k_uplets = generate_uplets('ACTG',k,[''])
-    occs = np.zeros(len(k_uplets))
-    for i,s in enumerate(k_uplets):
-        occs[i]=sequence.count(s)
+
+    occs = np.zeros((n,len(k_uplets)))
+    for i,sequence in enumerate(x):
+        for j,s in enumerate(k_uplets):
+            occs[i,j]=sequence.count(s)
+
     return occs
+
+def spectrum_kernel(x1,x2,k=3):
+    """
+    Computes the spectrum kernel between x1 and x2
+    """
+
+    tmp1,tmp2 = x1.reshape(np.shape(x1)[0]),x2.reshape(np.shape(x2)[0])
+    s1 , s2 = spectrum(tmp1,k),spectrum(tmp2,k)
+
+
+    return np.dot(s1,s2.T)
