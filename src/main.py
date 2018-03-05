@@ -10,35 +10,29 @@ import Classifier
 import kernels
 import numpy as np
 
-# EXTRACT AND CLEAN THE DATA
 Xfile = "../data/Xtr0.csv"
 Yfile = "../data/Ytr0.csv"
-X,Y = cf.preprocessing(Xfile,Yfile)
+X,Y = cf.extract(Xfile,Yfile)
+Xtrain, Y_train, Xtest, Y_test = cf.splitdata(X,Y)
+# test the different lambda for the spectrum kernel 
+train_acc = []
+test_acc = []
+lambs = [1e-8,1e-5,1e-3,1e-2,1,10,100]
+for lamb in lambs:
+    svm = Classifier.SVM("spectrum")
+    svm.lamb = lamb
 
-#split into test set and validation set
-X_train, Y_train, X_test, Y_test = cf.splitdata(X,Y)
+    Y_train_svm = 2*(Y_train - 1/2)
+    Y_test_svm = 2*(Y_test - 1/2)
+    svm.train(Xtrain, Y_train_svm)
+    y_pred = svm.predict(Xtrain)
+    y_pred = y_pred > 0
+    train_acc.append(cf.classification_accuracy(Y_train, y_pred))
+    y_pred = svm.predict(Xtest)
+    y_pred = y_pred > 0
+    test_acc.append(cf.classification_accuracy(Y_test, y_pred))
 
-Y_tr = 2*(Y_train - 1/2)
-Y_te = 2*(Y_test - 1/2)
-svm = Classifier.SVM()
-svm.lamb = 1
-kernelName = ["gaussian", "linear", "polynomial"]
-for name in kernelName:
-    print(name,"\n")
-    svm.setKernel(name)
-    svm.train(X_train,Y_tr)
-    Y_p = svm.predict(X_train)
-    Y_p = 2*Y_p - 1
-    res = np.sum(Y_p == Y_tr)/X_train.shape[0]
-    print("training accuracy : ",res,"\n")
-    Y_p = svm.predict(X_test)
-    Y_p = 2*Y_p - 1
-    res = np.sum(Y_p == Y_te)/X_test.shape[0]
-    print("test accuracy : ",res,"\n")
-
-# print(X_train[0])
-# print(X[0])
-# print(np.shape(X_train))
-# print(np.shape(X_test))
-# print(np.shape(Y_train))
-# print(np.shape(Y_test))
+plt.semilogx(lambs,train_acc)
+plt.semilogx(lambs,test_acc)
+plt.legend(["Training",'Test'])
+plt.show()

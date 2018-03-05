@@ -14,6 +14,13 @@ def extractdata(filename, sep = ','):
     data  = pd.read_csv(filename,sep= sep, header=None, engine='python').as_matrix()
     return data
 
+def extract(Xfile,Yfile):
+    X = extractdata(Xfile)
+    Y = extractdata(Yfile)
+    Y =Y[1:,1]
+    Y = Y.astype(int)
+
+    return X, Y
 
 def splitdata(X,Y):
     n = np.shape(X)[0]
@@ -26,10 +33,12 @@ def splitdata(X,Y):
     return Xtrain, Y_train, Xtest, Y_test
 
 def preprocessing(Xfile,Yfile):
-    Xtmp = extractdata(Xfile)
-    Y = extractdata(Yfile)
-    Y =Y[1:,1]
-    Y = Y.astype(int)
+    # Xtmp = extractdata(Xfile)
+    # Y = extractdata(Yfile)
+    # Y =Y[1:,1]
+    # Y = Y.astype(int)
+    # Xtmp = np.array([list(Xtmp[k,0]) for k in range(np.shape(Xtmp)[0])])
+    Xtmp, Y = extract(Xfile,Yfile)
     Xtmp = np.array([list(Xtmp[k,0]) for k in range(np.shape(Xtmp)[0])])
 
     d = {'A':np.array([1,0,0,0]), 'C': np.array([0,1,0,0]), 'G':np.array([0,0,1,0]), 'T':np.array([0,0,0,1])}

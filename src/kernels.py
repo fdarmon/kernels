@@ -7,7 +7,7 @@ class Kernel:
 
     """
 
-    def __init__(self, kernel_type = 'linear',deg = None, sigma = None):
+    def __init__(self, kernel_type = 'linear',deg = None, sigma = None, k_uplet = None):
         """
         Classical kernels
         kernel_type can be : ("linear" or "polynomial" or "gaussian")
@@ -23,15 +23,26 @@ class Kernel:
         else:
             self.sigma = sigma
 
+        if kernel_type =="spectrum":
+            if k_uplet is None:
+                self.k_uplet = generate_uplets('ACTG',3,[''])
+            else:
+                self.k_uplet = k_uplet
+
     def gram_matrix(self,X):
         if self.type =='linear':
             return X @ X.T
 
         elif self.type =="polynomial":
             return (X @ X.T)**self.deg
-        else:
+
+        elif self.type == "gaussian":
             diff_matrix = X[None,:,:]-X[:,None,:] # shape n*n*d
             return(np.exp(-np.sum(diff_matrix**2,axis = 2)/(2*self.sigma**2)))
+        else :
+            tmp = np.array([spectrum(X[i,0], 3, self.k_uplet) for i in range(np.shape(X)[0])])
+            return tmp @ tmp.T
+
 
     def predict(self,X,Xtrain,alphas):
         """
@@ -43,6 +54,11 @@ class Kernel:
 
         elif self.type =="polynomial":
             return alphas.T @ (Xtrain @ X.T)**self.deg
+
+        elif self.type == "spectrum":
+            X_num = np.array([spectrum(X[i,0], 3, self.k_uplet) for i in range(np.shape(X)[0])])
+            Xtrain_num = np.array([spectrum(Xtrain[i,0], 3, self.k_uplet) for i in range(np.shape(Xtrain)[0])])
+            return alphas.T @ Xtrain_num @ X_num.T
 
         else:
             diff_matrix = Xtrain[:,None,:]-X[None,:,:] # shape n_train*n_test*d
@@ -68,7 +84,7 @@ def generate_uplets(alphabet,n,aux):
 
         return generate_uplets(alphabet,n-1,tmp)
 
-def spectrum(sequence,k):
+def spectrum(sequence,k,k_uplets):
     """
     Computes the spectrum representation of the vector x
     Parameters
@@ -80,7 +96,7 @@ def spectrum(sequence,k):
     phix : spectrum representation of x. Array containing for each word
             of size k the number of occurences of the word in x
     """
-    k_uplets = generate_uplets('ACTG',k,[''])
+    #k_uplets = generate_uplets('ACTG',k,[''])
     occs = np.zeros(len(k_uplets))
     for i,s in enumerate(k_uplets):
         occs[i]=sequence.count(s)
