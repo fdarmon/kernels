@@ -135,25 +135,30 @@ class LogisticRegression(Classifier):
         self.coef = np.zeros((n,))
 
         tic = time.time()
-
+        last_loss = np.inf
         while(True):
-
             m = K @ self.coef
-            sqrt_w = np.sqrt(self.logistic(m)*self.logistic(-m))
-            z = m + Y/self.logistic(-Y * m)
+            sqrt_w = np.sqrt( self.logistic(m) * self.logistic(-m))
+            z = m + Y / self.logistic(-Y * m)
 
             mat_sqrt_W = np.diag(sqrt_w)
             mat_sqrt_iW = np.diag(1/sqrt_w)
 
-            A = (mat_sqrt_W @ K @ mat_sqrt_W + n * self.lamb * np.eye(n)) @ mat_sqrt_iW
+            A = ((mat_sqrt_W @ K @ mat_sqrt_W) + n * self.lamb * np.eye(n)) @ mat_sqrt_iW
             b = mat_sqrt_W @ z
             new_coef = np.linalg.solve(A,b)
-            loss_function = 1/n*np.sum(-np.log(self.logistic(Y*m)))+self.lamb/2*self.coef.T@ K @self.coef
+
+            loss_function =  1/n*np.sum( - np.log(self.logistic(Y*m)))+self.lamb/2*self.coef.T@ K @self.coef
             print("loss : {}".format(loss_function))
-            if np.all(np.abs(self.logistic(m)-self.logistic(K @ new_coef)) < tol):
+            if loss_function > last_loss + 1e-4:
+                print("Error, increasing loss")
+                break
+
+            if np.abs(loss_function-last_loss) < tol:
                 break
             else:
                 self.coef = new_coef
+                last_loss = loss_function
 
 
         print("Training done in {}s".format(time.time()-tic))

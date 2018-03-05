@@ -9,12 +9,13 @@ import challengeFunctions as cf
 import Classifier
 import kernels
 import numpy as np
+import matplotlib.pyplot as plt
 
 Xfile = "../data/Xtr0.csv"
 Yfile = "../data/Ytr0.csv"
 X,Y = cf.extract(Xfile,Yfile)
 Xtrain, Y_train, Xtest, Y_test = cf.splitdata(X,Y)
-# test the different lambda for the spectrum kernel 
+# test the different lambda for the spectrum kernel
 train_acc = []
 test_acc = []
 lambs = [1e-8,1e-5,1e-3,1e-2,1,10,100]
