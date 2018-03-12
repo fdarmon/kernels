@@ -8,6 +8,9 @@ the code to execute to learn the different classifiers and evaluate their perfor
 basics function to extract and split the dataset. It also contains all the function necessary to the evaluation of the diffrent methodes
 ### kernel
 code for the diffrenet kernels
+  spectrum -> check that it can be implemented kernelly
+  substring kernel
+  
 ### classifiers
 code for the diffrenet classifiers
 ### baseline
