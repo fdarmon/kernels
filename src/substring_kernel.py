@@ -102,7 +102,7 @@ def convert_to_list(str_in,dico):
     for l in str_in:
         res.append(dico[l])
     return np.array(res)
-    
+
 if __name__ == '__main__':
     X,Y=load_data(0,'train')
     dico = {'A' : 0, 'C' : 1,'G':2,'T':3}
@@ -118,7 +118,14 @@ if __name__ == '__main__':
     for i in range(n):
         for j in range(n):
             raveled_l.append((l[i],l[j]))
-            #res[i,j] = kernel_func(l[i],l[j],K = 2)
 
-
+    with ThreadPool(50) as p:
+        res = p.map(kernel_func,raveled_l)
+    mat_res = np.zeros(n,n)
+    cpt = 0
+    for i in range(n):
+        for j in range(n):
+            mat_res[i,j] = res[cpt]
+            cpt = cpt+1
     print(time.time()-tic)
+    np.savetxt(mat_res,"../res.csv")
