@@ -97,6 +97,12 @@ def kernel_func(inputs,K = 2, lambda_param = 0.9):
 
     return(K_k[-1,-1])
 
+def convert_to_list(str_in,dico):
+    res = []
+    for l in str_in:
+        res.append(dico[l])
+    return np.array(res)
+    
 if __name__ == '__main__':
     X,Y=load_data(0,'train')
     dico = {'A' : 0, 'C' : 1,'G':2,'T':3}
