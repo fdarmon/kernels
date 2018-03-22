@@ -3,7 +3,9 @@ import pandas as pd
 import time
 from numba import jit
 from multiprocessing.pool import ThreadPool
-data_dir = "../data/"
+import sys
+import argparse
+data_dir = "./data/"
 
 def load_data(n,t):
     """
@@ -14,6 +16,7 @@ def load_data(n,t):
         path = data_dir+'Xte'+str(n) +'.csv'
         data = pd.read_csv(path,header=-1)
         X = data.as_matrix()
+        X = X.reshape(np.shape(X)[0]) # Sequences in String format
         return X
     if(t=='train'):
         xpath = data_dir+'Xtr' +str(n) +'.csv'
@@ -104,28 +107,82 @@ def convert_to_list(str_in,dico):
     return np.array(res)
 
 if __name__ == '__main__':
-    X,Y=load_data(0,'train')
+    parser = argparse.ArgumentParser(description='Substring kernel : computes training and testing kernel matrices.')
+    parser.add_argument('--K', type=int, default = 2,
+                        help='Length of substrings (default 2)')
+    parser.add_argument('--lambda_param', type = float,default = 0.9,
+                        help='Lambda parameter of the substring kernel (default 0.9)')
+    parser.add_argument("--dataset",type = int, default = None, help = "Dataset to process, by default all")
+    parser.add_argument("--nb_threads",type = int, default = 4, help = "Number of threads for paralel computation (default 4)")
+
+    args = parser.parse_args()
     dico = {'A' : 0, 'C' : 1,'G':2,'T':3}
 
-    n = X.shape[0]
-    l = []
+    if args.dataset is None:
+        datasets = [0,1,2]
+    else:
+        datasets = [args.dataset]
 
-    for i in range(n):
-        l.append(convert_to_list(X[i],dico))
-    raveled_l = []
-    tic = time.time()
-    res = np.zeros((n,n))
-    for i in range(n):
-        for j in range(n):
-            raveled_l.append((l[i],l[j]))
+    for dataset_nb in datasets:
+        X,Y=load_data(dataset_nb,'train')
+        X_t = load_data(dataset_nb,'test')
 
-    with ThreadPool(50) as p:
-        res = p.map(kernel_func,raveled_l)
-    mat_res = np.zeros(n,n)
-    cpt = 0
-    for i in range(n):
-        for j in range(n):
-            mat_res[i,j] = res[cpt]
-            cpt = cpt+1
-    print(time.time()-tic)
-    np.savetxt(mat_res,"../res.csv")
+        print(X_t.shape)
+        print(X.shape)
+        n = X.shape[0]
+        n_t = X_t.shape[0]
+        l = []
+        l_t = []
+
+        for i in range(n):
+            l.append(convert_to_list(X[i],dico))
+
+        for i in range(n_t):
+            l_t.append(convert_to_list(X_t[i],dico))
+
+        raveled_l = []
+        raveled_lt = []
+
+        res = np.zeros((n,n))
+        for i in range(n):
+            for j in range(i,n):
+                raveled_l.append((l[i],l[j]))
+
+        for i in range(n):
+            for j in range(n_t):
+                raveled_lt.append((l[i],l_t[j]))
+
+        func  = lambda x : kernel_func(x,lambda_param = args.lambda_param,K = args.K)
+
+        tic = time.time()
+        with ThreadPool(args.nb_threads) as p:
+            res = p.map(func,raveled_l)
+
+        mat_res = np.zeros((n,n))
+        cpt = 0
+        for i in range(n):
+            for j in range(i,n):
+                mat_res[i,j] = res[cpt]
+                mat_res[j,i] = res[cpt]
+                cpt = cpt+1
+
+        print("Finished computing training matrix of dataset {} in {}s".format(dataset_nb,time.time()-tic))
+
+        filename = 'res_train_{}.csv'.format(dataset_nb)
+        np.savetxt(filename,mat_res)
+
+        tic = time.time()
+        with ThreadPool(args.nb_threads) as p:
+            res = p.map(func,raveled_lt)
+
+        mat_res = np.zeros((n,n_t))
+        cpt = 0
+        for i in range(n):
+            for j in range(n_t):
+                mat_res[i,j] = res[cpt]
+                cpt = cpt+1
+
+        print("Finished computing testing matrix of dataset {} in {}s".format(dataset_nb,time.time()-tic))
+
+        filename = 'computed_kernels/substring_test_{}.csv'.format(dataset_nb)
+        np.savetxt(filename,mat_res)
