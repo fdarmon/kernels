@@ -9,38 +9,34 @@ import time
 class Classifier :
     """
     Abstract class from which every classifier must inherit
+    A classifier must have a train function that given a training gram matrix
+    and corresponding label trains the model into 'coef'
     """
-    def __init__(self, kernel):
+    def __init__(self):
         """
-        Every classifier must be initialized with a kernel:
-            - If the kernel is a classical one i.e. one of (linear, polynomial or
-            gaussian), the corresponding string can be sent to the constructor.
-            NB: The kernels will be created with parameters (degree of polynom,
-            variance of gaussian) set to the default value.
 
-            - Else, a kernel object already instanced can be sent
 
         """
         self.lamb = 1
-        if isinstance(kernel, str):
-            self.kernel = kernels.Kernel(kernel)
-        else:
-            self.kernel = kernel
 
-        self.coef = 0
-        self.Xtrain = None
-        self.solver = "cvxopt"
+        self.coef = None
 
 
-    def predict(self, X):
+    def predict(self, test_matrix):
         """
-        Returns the prediction of the numpy array X on the current SVM
+        Returns the prediction of the dataset
+
+        params:
+            X : numpy array of shape (n_train,n_test) array of K(x_i,x_j) for x_i
+            in the training set and x_j in the set to predict
 
         """
-        if self.Xtrain is None:
+        if self.coef is None:
             print("Error, the classifier has not been trained")
         else:
-            return self.kernel.predict(X,self.Xtrain,self.coef)
+            assert self.coef.shape[0] == test_matrix.shape[0]
+            return self.coef.T @ test_matrix
+
 
 
 
@@ -48,19 +44,24 @@ class SVM(Classifier):
     """
     Class that implements kernel SVM
     """
-    def __init__(self,kernel):
-        super().__init__(kernel)
+    def __init__(self):
+        super().__init__()
+        self.solver = "cvxopt"
 
-        self.margin = 0
         self.bias = None
 
     def predict(self,X):
         return super().predict(X) + self.bias
 
-    def train(self, X, Y):
-        K = self.kernel.gram_matrix(X)
+    def train(self, K, Y):
+        """
+        Function to train the SVM and put the result in self.coef
 
-        n, d = X.shape
+        params :
+            K : gram matrix of the training data
+            Y : labels
+        """
+        n = K.shape[0]
         assert(len(Y)==n)
         #define the QP
         if self.solver == "quadprog":
@@ -99,7 +100,6 @@ class SVM(Classifier):
             #solve the QP
             self.coef =  np.array(sol['x']).reshape((K.shape[1],))
 
-        self.Xtrain = X
 
         #compute the bias:
         tmp = Y*self.coef
@@ -120,13 +120,21 @@ class LogisticRegression(Classifier):
     Class that implements Kernel Logistic Regression with an Iteratively
     reweighted least square.
     """
-    def __init__(self,kernel):
+    def __init__(self):
         super().__init__(kernel)
 
     def logistic(self,x):
         return(1 / ( 1 + np.exp(np.clip( -x , -20 , 20) ) ) )
 
-    def train(self,X,Y):
+    def train(self,K,Y):
+        """
+        Function to train the logreg and put the result in self.coef
+
+        params :
+            K : gram matrix of the training data
+            Y : labels
+        """
+
         tol = 1e-8
         K = self.kernel.gram_matrix(X)
         n ,d = X.shape
@@ -162,5 +170,3 @@ class LogisticRegression(Classifier):
 
 
         print("Training done in {}s".format(time.time()-tic))
-        self.Xtrain = X
-        self.predict_func = lambda x : kernels.prediction_function(self.coef, self.Xtrain, self.kernel,x)

@@ -93,6 +93,7 @@ def kernel_func(inputs,K = 2, lambda_param = 0.9):
         K_k[i][k] = K_k[i-1][k] + res*lambda_param**2
 
         for j in range(k+1,len(x2)):
+            res = 0
             for l in range(i):
                 if x1[l+1] == x2[j]:
                     res = res + B_k_1[l,j-1]
