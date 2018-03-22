@@ -121,7 +121,18 @@ if __name__ == '__main__':
 
     if args.dataset is None:
         datasets = [0,1,2]
+        dirname = 0
+        while(os.path.exists("./computed_kernels/{}".format(dirname))):
+            dirname = dirname + 1
+        os.mkdir("./computed_kernels/{}".format(dirname))
+        print("Created directory {} for writing the results".format(dirname))
+        with open("./computed_kernels/{}/config.txt".format(dirname),'w') as f:
+            f.write("kernel  = substring\nK = {}\nLambda = {}".format(args.K,args.lambda_param))
+
     else:
+        if not os.path.exists("./computed_kernels/tmp"):
+            os.mkdir("./computed_kernels/tmp")
+        dirname = 'tmp'
         datasets = [args.dataset]
 
     for dataset_nb in datasets:
@@ -153,13 +164,7 @@ if __name__ == '__main__':
 
         func  = lambda x : kernel_func(x,lambda_param = args.lambda_param,K = args.K)
 
-        dirname = 0
-        while(os.path.exists("./computed_kernels/{}".format(dirname))):
-            dirname = dirname + 1
-        os.mkdir("./computed_kernels/{}".format(dirname))
-        print("Created directory {} for writing the results".format(dirname))
-        with open("./computed_kernels/{}/config.txt".format(dirname),'w') as f:
-            f.write("kernel  = substring\nK = {}\nLambda = {}".format(args.K,args.lambda_param))
+
 
         tic = time.time()
         with ThreadPool(args.nb_threads) as p:
