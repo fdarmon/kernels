@@ -5,6 +5,7 @@ from numba import jit
 from multiprocessing.pool import ThreadPool
 import sys
 import argparse
+import os
 data_dir = "./data/"
 
 def load_data(n,t):
@@ -153,6 +154,12 @@ if __name__ == '__main__':
                 raveled_lt.append((l[i],l_t[j]))
 
         func  = lambda x : kernel_func(x,lambda_param = args.lambda_param,K = args.K)
+        
+        dirname = 0
+        while(os.path.exist("./computed_kernels/{}".format(dirname))):
+            dirname = dirname + 1
+        with open("./computed_kernels/{}/config.txt".format(dirname)) as f:
+            f.write("kernel  = substring\nK = {}\nLambda = {}".format(args.K,args.lambda_param))
 
         tic = time.time()
         with ThreadPool(args.nb_threads) as p:
@@ -168,7 +175,9 @@ if __name__ == '__main__':
 
         print("Finished computing training matrix of dataset {} in {}s".format(dataset_nb,time.time()-tic))
 
-        filename = 'res_train_{}.csv'.format(dataset_nb)
+
+
+        filename = 'computed_kernels/{}/train_{}.csv'.format(dirname,dataset_nb)
         np.savetxt(filename,mat_res)
 
         tic = time.time()
@@ -184,5 +193,5 @@ if __name__ == '__main__':
 
         print("Finished computing testing matrix of dataset {} in {}s".format(dataset_nb,time.time()-tic))
 
-        filename = 'computed_kernels/substring_test_{}.csv'.format(dataset_nb)
+        filename = 'computed_kernels/{}/test_{}.csv'.format(dirname,dataset_nb)
         np.savetxt(filename,mat_res)
