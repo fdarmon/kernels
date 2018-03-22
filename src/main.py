@@ -11,29 +11,44 @@ import kernels
 import numpy as np
 import matplotlib.pyplot as plt
 
-Xfile = "../data/Xtr0.csv"
-Yfile = "../data/Ytr0.csv"
-X,Y = cf.extract(Xfile,Yfile)
-Xtrain, Y_train, Xtest, Y_test = cf.splitdata(X,Y)
-# test the different lambda for the spectrum kernel
-train_acc = []
-test_acc = []
-lambs = [1e-8,1e-5,1e-3,1e-2,1,10,100]
-for lamb in lambs:
-    svm = Classifier.SVM("spectrum")
-    svm.lamb = lamb
+dataset = 0
+y = np.loadtxt("../data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
+y = (y*2)-1 # 0/1 to -1/1
+k_fold = 5
+n = y.shape[0]
+np.random.seed(2018)
+random_indexes  = np.random.permutation(np.arange(n))
 
-    Y_train_svm = 2*(Y_train - 1/2)
-    Y_test_svm = 2*(Y_test - 1/2)
-    svm.train(Xtrain, Y_train_svm)
-    y_pred = svm.predict(Xtrain)
-    y_pred = y_pred > 0
-    train_acc.append(cf.classification_accuracy(Y_train, y_pred))
-    y_pred = svm.predict(Xtest)
-    y_pred = y_pred > 0
-    test_acc.append(cf.classification_accuracy(Y_test, y_pred))
+lambdas = [0.0001,0.001,0.01,0.1,1,10]
+nb_kernel = 4
+train_acc = np.zeros((nb_kernel,k_fold))
+val_acc = np.zeros((nb_kernel,k_fold))
 
-plt.semilogx(lambs,train_acc)
-plt.semilogx(lambs,test_acc)
-plt.legend(["Training",'Test'])
-plt.show()
+for kernel in range(nb_kernel):
+    K = np.loadtxt("../computed_kernels/{}/train_{}.csv".format(kernel,dataset))
+    for i,lamb in enumerate(lambdas):
+        print("Lambda = {}".format(lamb))
+        vals = np.zeros(k_fold)
+        trains = np.zeros(k_fold)
+        for j in range(k_fold):
+            train_indexes = np.concatenate([random_indexes[0:i*n//k_fold],random_indexes[(i+1)*n//k_fold:]])
+            val_indexes = random_indexes[i*n//k_fold:(i+1)*n//k_fold]
+
+            model = SVM()
+            model.lamb = lamb
+            model.train(K[train_indexes[:,None],train_indexes[None,:]],y[train_indexes])
+
+            y_train = model.predict(K[train_indexes[:,None],train_indexes[None,:]])
+            y_train = (y_train > 0 )*2 -1
+
+            y_pred = model.predict(K[train_indexes[:,None],val_indexes[None,:]])
+            y_pred = (y_pred > 0 )*2 -1
+
+            vals[j] = classification_accuracy(y_pred,y[val_indexes])
+            trains[j] = classification_accuracy(y_train,y[train_indexes])
+
+        val_acc[kernel,i] = np.mean(vals)
+        train_acc[kernel,i] = np.mean(trains)
+
+np.savetxt("res/val_acc_dataset_{}.csv".format(dataset),val_acc)
+np.savetxt("res/train_acc_dataset_{}.csv".format(dataset),train_acc)

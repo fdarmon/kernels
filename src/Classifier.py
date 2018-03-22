@@ -12,12 +12,12 @@ class Classifier :
     A classifier must have a train function that given a training gram matrix
     and corresponding label trains the model into 'coef'
     """
-    def __init__(self):
+    def __init__(self,lamb = 1):
         """
 
 
         """
-        self.lamb = 1
+        self.lamb = lamb
 
         self.coef = None
 
@@ -51,9 +51,9 @@ class SVM(Classifier):
         self.bias = None
 
     def predict(self,X):
-        return super().predict(X) + self.bias
+        return super().predict(X)# + self.bias
 
-    def train(self, K, Y):
+    def train(self, K, Y, verbose = False):
         """
         Function to train the SVM and put the result in self.coef
 
@@ -78,6 +78,8 @@ class SVM(Classifier):
             self.coef = quadprog.solve_qp(G, a, C, b)[0]
 
         else :
+            if not verbose:
+                cvxopt.solvers.options['show_progress'] = False
             P = .5 * (K + K.T)  # make sure P is symmetric
             args = [matrix(P), -matrix(Y)]
             C1 = np.diag(Y)
@@ -101,18 +103,20 @@ class SVM(Classifier):
             self.coef =  np.array(sol['x']).reshape((K.shape[1],))
 
 
-        #compute the bias:
+        #compute the bias: skipped for now
+        """
         tmp = Y*self.coef
         mask1 = tmp > 5*10**(-10)
         mask2 = tmp < (1/(self.lamb*n*2) - 5*10**(-10)*1/(self.lamb*n*2))
         mask = mask1*mask2
         nonSaturatedCoef = self.coef[mask]
         nonSaturatedy = Y[mask]
-        nonSaturatedX = X[mask]
+        nonSaturatedX = K[:,mask]
         print("Number of non saturated constraints : \n")
         print(nonSaturatedX.shape[0])
-        tmp = 1/nonSaturatedy - self.kernel.predict(nonSaturatedX, X, self.coef)
+        tmp = 1/nonSaturatedy - self.predict(nonSaturatedX)
         self.bias = np.mean(tmp)
+        """
 
 
 class LogisticRegression(Classifier):
@@ -136,8 +140,7 @@ class LogisticRegression(Classifier):
         """
 
         tol = 1e-8
-        K = self.kernel.gram_matrix(X)
-        n ,d = X.shape
+        n = X.shape[0]
         assert(len(Y)==n)
 
         self.coef = np.zeros((n,))
