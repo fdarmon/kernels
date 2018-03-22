@@ -53,18 +53,18 @@ def kernel_func(inputs,K = 2, lambda_param = 0.9):
 
         for i in range(k+1,len(x1)):
             res = 0
-            for l in range(k+1):
+            for l in range(1,k+1):
                 if x2[l] == x1[i]:
-                    res = B_k_1[i-1,l]*lambda_param**(k-l+1)
+                    res = B_k_1[i-1,l-1]*lambda_param**(k-l+1)
 
 
             B_k[i,k] = lambda_param*B_k[i-1,k] + res
 
         for j in range(k+1,len(x2)):
             res = 0
-            for l in range(k+1):
+            for l in range(1,k+1):
                 if x1[l] == x2[j]:
-                    res = B_k_1[l,j-1]*lambda_param**(k-l+1)
+                    res = B_k_1[l-1,j-1]*lambda_param**(k-l+1)
             B_k[k,j] = lambda_param*B_k[k,j-1] + res
 
         for i in range(k+1,len(x1)):
@@ -77,26 +77,30 @@ def kernel_func(inputs,K = 2, lambda_param = 0.9):
                 B_k[i,j] = lambda_param*(B_k[i,j-1] + B_k[i-1,j]) - lambda_param**2* B_k[i-1,j-1] + tmp
 
         B_k_1 = B_k
-
+        print(B_k)
     ### ========================================================================================
     ### K_k computation
     ### ========================================================================================
     K_k = np.zeros((len(x1),len(x2)))#[[0 for i in range(len(x2))] for j in range(len(x1))] # K_k[i,j] = K_k(x1[0:i+1],x2[0:j+1])
     k = K - 1 # to have the same notation as above where k is in range(K)
-
+    K_k[k,k] = lambda_param**(2*(k+1))
+    for i in range(k+1):
+        if x1[i] != x2[i]:
+            K_k[k,k] = 0
     for i in range(k,len(x1)):
-        res = 0
-        for l in range(k):
-            if x2[l+1] == x1[i]:
-                res = res + B_k_1[i-1,l]
+        if i > k:
+            res = 0
+            for l in range(1,k+1):
+                if x2[l] == x1[i]:
+                    res = res + B_k_1[i-1,l-1]
 
-        K_k[i][k] = K_k[i-1][k] + res*lambda_param**2
+            K_k[i][k] = K_k[i-1][k] + res*lambda_param**2
 
         for j in range(k+1,len(x2)):
             res = 0
-            for l in range(i):
-                if x1[l+1] == x2[j]:
-                    res = res + B_k_1[l,j-1]
+            for l in range(1,i+1):
+                if x1[l] == x2[j]:
+                    res = res + B_k_1[l-1,j-1]
 
             K_k[i,j] = K_k[i,j-1] + res*lambda_param**2
 
