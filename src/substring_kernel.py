@@ -128,8 +128,6 @@ if __name__ == '__main__':
         X,Y=load_data(dataset_nb,'train')
         X_t = load_data(dataset_nb,'test')
 
-        print(X_t.shape)
-        print(X.shape)
         n = X.shape[0]
         n_t = X_t.shape[0]
         l = []
@@ -154,11 +152,13 @@ if __name__ == '__main__':
                 raveled_lt.append((l[i],l_t[j]))
 
         func  = lambda x : kernel_func(x,lambda_param = args.lambda_param,K = args.K)
-        
+
         dirname = 0
-        while(os.path.exist("./computed_kernels/{}".format(dirname))):
+        while(os.path.exists("./computed_kernels/{}".format(dirname))):
             dirname = dirname + 1
-        with open("./computed_kernels/{}/config.txt".format(dirname)) as f:
+        os.mkdir("./computed_kernels/{}".format(dirname))
+        print("Created directory {} for writing the results".format(dirname))
+        with open("./computed_kernels/{}/config.txt".format(dirname),'w') as f:
             f.write("kernel  = substring\nK = {}\nLambda = {}".format(args.K,args.lambda_param))
 
         tic = time.time()
