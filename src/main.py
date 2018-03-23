@@ -5,11 +5,10 @@ Created on Sun Feb 25 20:13:43 2018
 @author: Alexandre Philbert
 """
 
-import challengeFunctions as cf
-import Classifier
+from Classifier import SVM,LogisticRegression
+from challengeFunctions import classification_accuracy,write_prediction_file
 import kernels
 import numpy as np
-import matplotlib.pyplot as plt
 
 dataset = 0
 y = np.loadtxt("./data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
