@@ -12,9 +12,9 @@ import numpy as np
 import os
 
 
-np.random.seed(2018)
-random_indexes  = np.random.permutation(np.arange(n))
+
 k_fold = 5
+np.random.seed(2018)
 
 lambdas = [0.0001,0.001,0.01,0.1,1,10,100,1000]
 kernels = [0,1,2,4]
@@ -33,6 +33,7 @@ for dataset in range(3):
     y = np.loadtxt("./data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
     y = (y*2)-1 # 0/1 to -1/1
     n = y.shape[0]
+    random_indexes  = np.random.permutation(np.arange(n))
 
     print("Cross validation for dataset {}".format(dataset))
 
