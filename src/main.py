@@ -32,8 +32,8 @@ for idk,kernel in enumerate(kernels):
         vals = np.zeros(k_fold)
         trains = np.zeros(k_fold)
         for j in range(k_fold):
-            train_indexes = np.concatenate([random_indexes[0:i*n//k_fold],random_indexes[(i+1)*n//k_fold:]])
-            val_indexes = random_indexes[i*n//k_fold:(i+1)*n//k_fold]
+            train_indexes = np.concatenate([random_indexes[0:j*n//k_fold],random_indexes[(j+1)*n//k_fold:]])
+            val_indexes = random_indexes[i*n//k_fold:(j+1)*n//k_fold]
 
             model = SVM()
             model.lamb = lamb
