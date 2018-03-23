@@ -21,8 +21,8 @@ random_indexes  = np.random.permutation(np.arange(n))
 lambdas = [0.0001,0.001,0.01,0.1,1,10,100,1000]
 kernels = [0,1,2,3]
 nb_kernel = len(kernels)
-train_acc = np.zeros((nb_kernel,k_fold))
-val_acc = np.zeros((nb_kernel,k_fold))
+train_acc = np.zeros((nb_kernel,len(lambdas)))
+val_acc = np.zeros((nb_kernel,len(lambdas)))
 
 for idk,kernel in enumerate(kernels):
     K = np.loadtxt("./computed_kernels/{}/train_{}.csv".format(kernel,dataset))
