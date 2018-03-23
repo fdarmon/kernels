@@ -12,20 +12,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 dataset = 0
-y = np.loadtxt("../data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
+y = np.loadtxt("./data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
 y = (y*2)-1 # 0/1 to -1/1
 k_fold = 5
 n = y.shape[0]
 np.random.seed(2018)
 random_indexes  = np.random.permutation(np.arange(n))
 
-lambdas = [0.0001,0.001,0.01,0.1,1,10]
-nb_kernel = 4
+lambdas = [0.0001,0.001,0.01,0.1,1,10,100,1000]
+kernels = [0,1,2,3]
+nb_kernel = len(kernels)
 train_acc = np.zeros((nb_kernel,k_fold))
 val_acc = np.zeros((nb_kernel,k_fold))
 
-for kernel in range(nb_kernel):
-    K = np.loadtxt("../computed_kernels/{}/train_{}.csv".format(kernel,dataset))
+for idk,kernel in enumerate(kernels):
+    K = np.loadtxt("./computed_kernels/{}/train_{}.csv".format(kernel,dataset))
     for i,lamb in enumerate(lambdas):
         print("Lambda = {}".format(lamb))
         vals = np.zeros(k_fold)
@@ -47,8 +48,10 @@ for kernel in range(nb_kernel):
             vals[j] = classification_accuracy(y_pred,y[val_indexes])
             trains[j] = classification_accuracy(y_train,y[train_indexes])
 
-        val_acc[kernel,i] = np.mean(vals)
-        train_acc[kernel,i] = np.mean(trains)
+        val_acc[idk,i] = np.mean(vals)
+        train_acc[idk,i] = np.mean(trains)
 
 np.savetxt("res/val_acc_dataset_{}.csv".format(dataset),val_acc)
 np.savetxt("res/train_acc_dataset_{}.csv".format(dataset),train_acc)
+with open("res/config.txt",'w') as f:
+    f.write("Lambdas : {}\n Kernels : {}".format(lambdas,kernels))

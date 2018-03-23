@@ -1,4 +1,4 @@
-import quadprog
+#import quadprog
 import numpy as np
 import kernels
 import cvxopt
@@ -65,7 +65,8 @@ class SVM(Classifier):
         assert(len(Y)==n)
         #define the QP
         if self.solver == "quadprog":
-
+            return
+            """
             G = 0.5*(K+K.T) + 10**(-8)*np.eye(n)
             a = Y
             C1 = -np.diag(Y)
@@ -76,6 +77,7 @@ class SVM(Classifier):
             b = np.hstack([b1,b2])
             #solve the QP
             self.coef = quadprog.solve_qp(G, a, C, b)[0]
+            """
 
         else :
             if not verbose:
