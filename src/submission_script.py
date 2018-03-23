@@ -28,11 +28,11 @@ if __name__ == '__main__':
         K = K/np.mean(K)
 
         model = SVM()
-        model.lamb = args.lamb
+        model.lamb = args.lambda_regularization
 
         model.train(K,y)
-        K = np.loadtxt("./computed_kernels/{}/test_{}.csv".format(args.kernel,dataset))
-        K = K/np.mean(K)
-        y_pred[dataset] = (model.predict(Ktest) > 0)
+        K_test = np.loadtxt("./computed_kernels/{}/test_{}.csv".format(args.kernel,dataset))
+        K_test = K_test/np.mean(K_test)
+        y_pred[dataset] = (model.predict(K_test) > 0)
 
     write_prediction_file("submission.csv",y_pred)
