@@ -131,7 +131,7 @@ if __name__ == '__main__':
         os.mkdir("./computed_kernels/{}".format(dirname))
         print("Created directory {} for writing the results".format(dirname))
         with open("./computed_kernels/{}/config.txt".format(dirname),'w') as f:
-            f.write("kernel  = substring\nK = {}\nLambda = {}".format(args.K,args.lambda_param))
+            f.write("kernel  = substring\nK = {}\nLambda = {}\n".format(args.K,args.lambda_param))
 
     else:
         if not os.path.exists("./computed_kernels/tmp"):

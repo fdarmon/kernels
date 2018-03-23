@@ -21,6 +21,14 @@ random_indexes  = np.random.permutation(np.arange(n))
 lambdas = [0.0001,0.001,0.01,0.1,1,10,100,1000]
 kernels = [0,1,2,3]
 nb_kernel = len(kernels)
+dirname = 0
+while(os.path.exists("./computed_kernels/{}".format(dirname))):
+    dirname = dirname + 1
+os.mkdir("./computed_kernels/{}".format(dirname))
+print("Created directory {} for writing the results".format(dirname))
+with open("./res/{}/config.txt".format(dirname),'w') as f:
+    f.write("Res {}\n{} fold Crossvalidation\nLambdas : {}\n Kernels : {}\n".format(dirname,k_fold,lambdas,kernels))
+    
 train_acc = np.zeros((nb_kernel,len(lambdas)))
 val_acc = np.zeros((nb_kernel,len(lambdas)))
 
@@ -33,7 +41,7 @@ for idk,kernel in enumerate(kernels):
         trains = np.zeros(k_fold)
         for j in range(k_fold):
             train_indexes = np.concatenate([random_indexes[0:j*n//k_fold],random_indexes[(j+1)*n//k_fold:]])
-            val_indexes = random_indexes[i*n//k_fold:(j+1)*n//k_fold]
+            val_indexes = random_indexes[j*n//k_fold:(j+1)*n//k_fold]
 
             model = SVM()
             model.lamb = lamb
@@ -53,7 +61,5 @@ for idk,kernel in enumerate(kernels):
         val_acc[idk,i] = np.mean(vals)
         train_acc[idk,i] = np.mean(trains)
 
-np.savetxt("res/val_acc_dataset_{}.csv".format(dataset),val_acc)
-np.savetxt("res/train_acc_dataset_{}.csv".format(dataset),train_acc)
-with open("res/config.txt",'w') as f:
-    f.write("Lambdas : {}\n Kernels : {}".format(lambdas,kernels))
+np.savetxt("res/{}/val_acc_dataset_{}.csv".format(dirname,dataset),val_acc)
+np.savetxt("res/{}/train_acc_dataset_{}.csv".format(dirname,dataset),train_acc)
