@@ -9,6 +9,7 @@ from Classifier import SVM,LogisticRegression
 from challengeFunctions import classification_accuracy,write_prediction_file
 import kernels
 import numpy as np
+import os
 
 dataset = 0
 y = np.loadtxt("./data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
@@ -22,13 +23,13 @@ lambdas = [0.0001,0.001,0.01,0.1,1,10,100,1000]
 kernels = [0,1,2,3]
 nb_kernel = len(kernels)
 dirname = 0
-while(os.path.exists("./computed_kernels/{}".format(dirname))):
+while(os.path.exists("./res/{}".format(dirname))):
     dirname = dirname + 1
-os.mkdir("./computed_kernels/{}".format(dirname))
+os.mkdir("./res/{}".format(dirname))
 print("Created directory {} for writing the results".format(dirname))
 with open("./res/{}/config.txt".format(dirname),'w') as f:
     f.write("Res {}\n{} fold Crossvalidation\nLambdas : {}\n Kernels : {}\n".format(dirname,k_fold,lambdas,kernels))
-    
+
 train_acc = np.zeros((nb_kernel,len(lambdas)))
 val_acc = np.zeros((nb_kernel,len(lambdas)))
 
