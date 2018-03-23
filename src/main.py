@@ -26,6 +26,7 @@ val_acc = np.zeros((nb_kernel,len(lambdas)))
 
 for idk,kernel in enumerate(kernels):
     K = np.loadtxt("./computed_kernels/{}/train_{}.csv".format(kernel,dataset))
+    K = K/np.mean(K)
     for i,lamb in enumerate(lambdas):
         print("Lambda = {}".format(lamb))
         vals = np.zeros(k_fold)
@@ -36,17 +37,19 @@ for idk,kernel in enumerate(kernels):
 
             model = SVM()
             model.lamb = lamb
-            model.train(K[train_indexes[:,None],train_indexes[None,:]],y[train_indexes])
+            try:
+                model.train(K[train_indexes[:,None],train_indexes[None,:]],y[train_indexes])
 
-            y_train = model.predict(K[train_indexes[:,None],train_indexes[None,:]])
-            y_train = (y_train > 0 )*2 -1
+                y_train = model.predict(K[train_indexes[:,None],train_indexes[None,:]])
+                y_train = (y_train > 0 )*2 -1
 
-            y_pred = model.predict(K[train_indexes[:,None],val_indexes[None,:]])
-            y_pred = (y_pred > 0 )*2 -1
+                y_pred = model.predict(K[train_indexes[:,None],val_indexes[None,:]])
+                y_pred = (y_pred > 0 )*2 -1
 
-            vals[j] = classification_accuracy(y_pred,y[val_indexes])
-            trains[j] = classification_accuracy(y_train,y[train_indexes])
-
+                vals[j] = classification_accuracy(y_pred,y[val_indexes])
+                trains[j] = classification_accuracy(y_train,y[train_indexes])
+            except:
+                print("Cannot train SVM with lambda = {} for kernel {}".format(lamb,kernel))
         val_acc[idk,i] = np.mean(vals)
         train_acc[idk,i] = np.mean(trains)
 
