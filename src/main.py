@@ -11,26 +11,29 @@ import kernels
 import numpy as np
 import os
 
-dataset = 0
-y = np.loadtxt("./data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
-y = (y*2)-1 # 0/1 to -1/1
-k_fold = 5
-n = y.shape[0]
+
 np.random.seed(2018)
 random_indexes  = np.random.permutation(np.arange(n))
+k_fold = 5
 
 lambdas = [0.0001,0.001,0.01,0.1,1,10,100,1000]
 kernels = [0,1,2,4]
 nb_kernel = len(kernels)
 dirname = 0
+
 while(os.path.exists("./res/{}".format(dirname))):
     dirname = dirname + 1
 os.mkdir("./res/{}".format(dirname))
+
 print("Created directory {} for writing the results".format(dirname))
 with open("./res/{}/config.txt".format(dirname),'w') as f:
     f.write("Res {}\n{} fold Crossvalidation\nLambdas : {}\n Kernels : {}\n".format(dirname,k_fold,lambdas,kernels))
 
-for dataset in range(3)
+for dataset in range(3):
+    y = np.loadtxt("./data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
+    y = (y*2)-1 # 0/1 to -1/1
+    n = y.shape[0]
+
     print("Cross validation for dataset {}".format(dataset))
 
     train_acc = np.zeros((nb_kernel,len(lambdas)))
