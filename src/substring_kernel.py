@@ -3,7 +3,6 @@ import pandas as pd
 import time
 from numba import jit
 from multiprocessing.pool import ThreadPool
-import sys
 import argparse
 import os
 data_dir = "./data/"
