@@ -21,7 +21,7 @@ class Retrieval_tree:
         """
         Init a prefix tree from the list of length-p prefixes of string
         """
-        for i in range(len(string)-p):
+        for i in range(len(string)-p+1):
             self.add_str(string[i:i+p])
 
 
@@ -67,7 +67,7 @@ class Retrieval_tree:
 
     def kernel(self, x2, p):
         res = 0
-        for i in range(len(x2)-p):
+        for i in range(len(x2)-p+1):
             res = res + self.get_value(x2[i:i+p])
 
         return res

@@ -106,7 +106,7 @@ class SVM(Classifier):
 
 
         #compute the bias: skipped for now
-        """
+        
         tmp = Y*self.coef
         mask1 = tmp > 5*10**(-10)
         mask2 = tmp < (1/(self.lamb*n*2) - 5*10**(-10)*1/(self.lamb*n*2))
@@ -114,11 +114,11 @@ class SVM(Classifier):
         nonSaturatedCoef = self.coef[mask]
         nonSaturatedy = Y[mask]
         nonSaturatedX = K[:,mask]
-        print("Number of non saturated constraints : \n")
-        print(nonSaturatedX.shape[0])
+        #print("Number of non saturated constraints : \n")
+        #print(nonSaturatedX.shape[0])
         tmp = 1/nonSaturatedy - self.predict(nonSaturatedX)
         self.bias = np.mean(tmp)
-        """
+        
 
 
 class LogisticRegression(Classifier):

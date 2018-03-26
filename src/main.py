@@ -16,8 +16,9 @@ import os
 k_fold = 5
 np.random.seed(2018)
 
-lambdas = [0.0001,0.001,0.01,0.1,1,10,100,1000]
-kernels = [0,1,2,4]
+lambdas = [1e-6,0.1,100]
+kernels = [7,8,9,10,11]
+
 nb_kernel = len(kernels)
 dirname = 0
 
@@ -27,9 +28,10 @@ os.mkdir("./res/{}".format(dirname))
 
 print("Created directory {} for writing the results".format(dirname))
 with open("./res/{}/config.txt".format(dirname),'w') as f:
-    f.write("Res {}\n{} fold Crossvalidation\nLambdas : {}\n Kernels : {}\n".format(dirname,k_fold,lambdas,kernels))
+    f.write("Res {}\n{} fold Crossvalidation\n kernels squared : {}\n lambdas : {}\n".format(dirname,k_fold,kernels,lambdas))
 
 for dataset in range(3):
+
     y = np.loadtxt("./data/Ytr{}.csv".format(dataset),skiprows = 1, usecols = (1,),delimiter = ',')
     y = (y*2)-1 # 0/1 to -1/1
     n = y.shape[0]
@@ -37,15 +39,21 @@ for dataset in range(3):
 
     print("Cross validation for dataset {}".format(dataset))
 
-    train_acc = np.zeros((nb_kernel,len(lambdas)))
-    val_acc = np.zeros((nb_kernel,len(lambdas)))
+    train_acc = np.zeros((len(kernels),len(lambdas)))
+    val_acc = np.zeros((len(kernels),len(lambdas)))
 
-    for idk,kernel in enumerate(kernels):
-        print("\t Kernel number {}".format(kernel))
+    for idx,kernel in enumerate(kernels):
+        
         K = np.loadtxt("./computed_kernels/{}/train_{}.csv".format(kernel,dataset))
-        K = K/np.mean(K)
-        for i,lamb in enumerate(lambdas):
-            print("\t\tLambda = {}".format(lamb))
+        print("\t kernel {}".format(kernel))
+        K = K/np.sqrt(np.outer(np.diag(K),np.diag(K)))
+        K = (K)**2
+            
+        #K = K/np.mean(K)
+        #K = K/np.diag(K)
+        #K = K/np.sqrt(np.outer(np.diag(K),np.diag(K)))
+        for idl,lamb in enumerate(lambdas):
+            print("\t\t Lambda : {}".format(lamb))
             vals = np.zeros(k_fold)
             trains = np.zeros(k_fold)
             for j in range(k_fold):
@@ -66,9 +74,10 @@ for dataset in range(3):
                     vals[j] = classification_accuracy(y_pred,y[val_indexes])
                     trains[j] = classification_accuracy(y_train,y[train_indexes])
                 except:
-                    print("Cannot train SVM with lambda = {} for kernel {}".format(lamb,kernel))
-            val_acc[idk,i] = np.mean(vals)
-            train_acc[idk,i] = np.mean(trains)
+                    print("Cannot train SVM with degree {}".format(deg))
+            print("\t \t Validation score : {}".format(np.mean(vals)))
+            val_acc[idx,idl] = np.mean(vals)
+            train_acc[idx,idl] = np.mean(trains)
 
     np.savetxt("res/{}/val_acc_dataset_{}.csv".format(dirname,dataset),val_acc)
     np.savetxt("res/{}/train_acc_dataset_{}.csv".format(dirname,dataset),train_acc)
