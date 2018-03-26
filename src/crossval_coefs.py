@@ -46,8 +46,8 @@ for dataset in range(3):
 
     print("Cross validation for dataset {}".format(dataset))
 
-    train_acc = np.zeros((len(kernels),len(lambdas)))
-    val_acc = np.zeros((len(kernels),len(lambdas)))
+    train_acc = np.zeros((len(coeffs),len(lambdas)))
+    val_acc = np.zeros((len(coeffs),len(lambdas)))
 
     for idx,coeff in enumerate(coeffs):
 
@@ -55,7 +55,7 @@ for dataset in range(3):
         print("\t coeff {}".format(coeff))
         K = np.zeros(K_l[0].shape)
         for idc,c in enumerate(coeff):
-            K = c*K_l[i]
+            K = K + c*K_l[idc]
 
         #K = K/np.mean(K)
         #K = K/np.diag(K)
